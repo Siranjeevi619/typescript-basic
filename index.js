@@ -1,8 +1,31 @@
+document.title = "Todo app";
 const inputEl = document.getElementById("todoInput");
 const addBtn = document.getElementById("addBtn");
 const listEl = document.getElementById("todoList");
+const searchTask = document.createElement("input");
+const divEl = document.getElementById("searchBar");
+const searchButton = document.createElement("button");
+searchButton.innerText = "Search";
+searchButton.style.color = "white";
+searchButton.style.backgroundColor = "blue";
+divEl.style.paddingTop = "10px";
+divEl.style.paddingBottom = "10px";
+searchTask.placeholder = "Search task";
+divEl.appendChild(searchTask);
+divEl.appendChild(searchButton);
+let allTodos = JSON.parse(localStorage.getItem("task-data") || "[]");
+let todos = [...allTodos];
+searchButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const val = searchTask.value;
+    filterTask(val);
+});
+// searchTask.addEventListener("input", (e) => {
+//   e.stopPropagation();
+//   const val = searchTask.value;
+//   filterTask(val);
+// });
 addBtn.addEventListener("click", addTodo);
-let todos = JSON.parse(localStorage.getItem("task-data") || "[]");
 renderTodos();
 function addTodo() {
     const text = inputEl.value.trim();
@@ -13,32 +36,36 @@ function addTodo() {
         text,
         status: false,
     };
-    todos.push(newTodo);
+    allTodos.push(newTodo);
+    todos = [...allTodos];
     inputEl.value = "";
     saveTodos();
     renderTodos();
 }
 function toggleTodo(id) {
-    todos = todos.map((todo) => todo.id === id ? Object.assign(Object.assign({}, todo), { status: !todo.status }) : todo);
+    allTodos = allTodos.map((todo) => todo.id === id ? Object.assign(Object.assign({}, todo), { status: !todo.status }) : todo);
+    todos = [...allTodos];
     saveTodos();
     renderTodos();
 }
 function deleteTodo(id) {
-    todos = todos.filter((todo) => todo.id !== id);
+    allTodos = allTodos.filter((todo) => todo.id !== id);
+    todos = [...allTodos];
     saveTodos();
     renderTodos();
 }
 function saveTodos() {
-    localStorage.setItem("task-data", JSON.stringify(todos));
+    localStorage.setItem("task-data", JSON.stringify(allTodos));
 }
 function editTask(id) {
-    var todo = todos.find((task) => task.id === id);
+    const todo = allTodos.find((task) => task.id === id);
     if (!todo)
         return;
     const updatedTask = prompt("update task", todo.text);
     if (updatedTask && updatedTask.trim() !== "") {
         todo.text = updatedTask.trim();
         saveTodos();
+        todos = [...allTodos];
         renderTodos();
     }
 }
@@ -81,5 +108,14 @@ function renderTodos() {
         li.appendChild(delBtn);
         listEl.appendChild(li);
     });
+}
+function filterTask(task) {
+    if (task.trim() === "") {
+        todos = [...allTodos];
+    }
+    else {
+        todos = allTodos.filter((todo) => todo.text.toLowerCase().includes(task.toLowerCase()));
+    }
+    renderTodos();
 }
 export {};
